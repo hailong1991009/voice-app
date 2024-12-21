@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>语音转文字</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 15px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        .button-group {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin: 20px 0;
+        }
+        button {
+            padding: 15px 30px;
+            font-size: 16px;
+            border: none;
+            border-radius: 25px;
+            background-color: #4CAF50;
+            color: white;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        button:disabled {
+            background-color: #cccccc;
+        }
+        #output {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 10px;
+            background-color: white;
+            min-height: 150px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .status {
+            text-align: center;
+            color: #666;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>语音转文字</h1>
+        <div class="status" id="status">准备就绪</div>
+        <div class="button-group">
+            <button id="startButton">开始录音</button>
+            <button id="stopButton" disabled>停止录音</button>
+        </div>
+        <div id="output"></div>
+    </div>
+
+    <script>
+        const startButton = document.getElementById('startButton');
+        const stopButton = document.getElementById('stopButton');
+        const output = document.getElementById('output');
+        const status = document.getElementById('status');
+        let recognition = null;
+
+        if ('webkitSpeechRecognition' in window) {
+            recognition = new webkitSpeechRecognition();
+            recognition.continuous = true;
+            recognition.interimResults = true;
+            recognition.lang = 'zh-CN';
+
+            recognition.onstart = function() {
+                status.textContent = '正在录音...';
+            };
+
+            recognition.onend = function() {
+                status.textContent = '录音已停止';
+            };
+
+            recognition.onresult = function(event) {
+                let finalTranscript = '';
+                for (let i = event.resultIndex; i < event.results.length; i++) {
+                    if (event.results[i].isFinal) {
+                        finalTranscript += event.results[i][0].transcript;
+                    }
+                }
+                if (finalTranscript !== '') {
+                    output.innerHTML += finalTranscript + '<br>';
+                }
+            };
+
+            recognition.onerror = function(event) {
+                status.textContent = '错误: ' + event.error;
+            };
+        } else {
+            alert('您的浏览器不支持语音识别功能');
+        }
+
+        startButton.onclick = function() {
+            if (recognition) {
+                recognition.start();
+                startButton.disabled = true;
+                stopButton.disabled = false;
+            }
+        };
+
+        stopButton.onclick = function() {
+            if (recognition) {
+                recognition.stop();
+                startButton.disabled = false;
+                stopButton.disabled = true;
+            }
+        };
+    </script>
+</body>
+</html>
